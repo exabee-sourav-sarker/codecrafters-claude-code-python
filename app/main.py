@@ -12,7 +12,7 @@ BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v
 TOOLS = {
     "type": "function",
     "function": {
-        "name": "ReadFile",
+        "name": "Read",
         "description": "Read the content of a file",
         "parameters": {
             "type": "object",
@@ -22,7 +22,7 @@ TOOLS = {
                     "description": "The file path"
                 }
             },
-            "required": ["path"]
+            "required": ["file_path"]
         }
     }
 }
@@ -61,11 +61,13 @@ def main():
 
     if tool_calls := chat.choices[0].message.tool_calls:
         for tool in tool_calls:
-            if tool.function.name == "ReadFile":
+            if tool.function.name == "Read":
                 arg = json.loads(tool.function.arguments)
                 with open(arg["file_path"], 'r') as f:
                     content = f.read()
                 print(content)
+    else:
+        print(chat.choices[0].message.content)
 
 
 if __name__ == "__main__":
