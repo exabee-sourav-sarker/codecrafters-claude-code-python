@@ -17,7 +17,7 @@ TOOLS = {
         "parameters": {
             "type": "object",
             "properties": {
-                "path": {
+                "file_path": {
                     "type": "string",
                     "description": "The file path"
                 }
