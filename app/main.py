@@ -57,7 +57,7 @@ def main():
     print("Logs from your program will appear here!", file=sys.stderr)
 
     # TODO: Uncomment the following line to pass the first stage
-    print(chat.choices[0].message.content)
+    # print(chat.choices[0].message.content)
 
     if tool_calls := chat.choices[0].message.tool_calls:
         for tool in tool_calls:
