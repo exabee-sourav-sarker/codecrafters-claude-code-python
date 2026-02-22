@@ -49,12 +49,17 @@ def main():
     chat = make_calls(client, messages)
     while tool_calls := chat.choices[0].message.tool_calls:
         messages.append(chat.choices[0].message)
-        for tool in tool_calls: 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_calls[0].id,
-                "content": chat.choices[0].message.content
-            })
+        for tool in tool_calls:
+            if tool.function.name == "Read":
+                arg = json.loads(tool.function.arguments)
+                with open(arg["file_path"], 'r') as f:
+                    content = f.read()
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool.id,
+                    "content": content
+                })
         chat = make_calls(client, messages)
 
     if not chat.choices or len(chat.choices) == 0:
