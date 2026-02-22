@@ -62,6 +62,8 @@ def main():
                 })
         chat = make_calls(client, messages)
 
+    print(chat.choices[0].message.content)
+
     if not chat.choices or len(chat.choices) == 0:
         raise RuntimeError("no choices in response")
 
