@@ -131,6 +131,7 @@ def call_bash_func(arg, id):
     return {
         "role": "tool",
         "tool_call_id": id,
+        "name": "Bash",
         "content": content
     }
 
