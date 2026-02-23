@@ -131,7 +131,7 @@ def call_read_func(arg, id):
     }
 
 def call_bash_func(arg, id):
-    content = subprocess.run(arg["command"], capture_output=True, text=True)
+    content = subprocess.run(arg["command"].split(), capture_output=True, text=True)
 
     return {
         "role": "tool",
