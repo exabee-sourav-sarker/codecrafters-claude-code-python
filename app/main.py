@@ -92,7 +92,6 @@ def main():
     while True:
         chat = make_calls(client, messages)
         msg = chat.choices[0].message
-        print(msg.content)
 
         messages.append(msg)
         if not msg.tool_calls:
