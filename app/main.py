@@ -131,7 +131,7 @@ def call_read_func(arg, id):
     }
 
 def call_bash_func(arg, id):
-    content = sh.sh("-c", arg["command"], _out=sys.stdout, _err=sys.stderr)
+    content = sh.sh("-c", arg["command"], cwd='.', _out=sys.stdout, _err=sys.stderr)
     return {
         "role": "tool",
         "tool_call_id": id,
