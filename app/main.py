@@ -1,5 +1,7 @@
 import argparse
 import os
+import sh
+import sys
 import sys
 import json
 
@@ -48,6 +50,23 @@ TOOLS = [
                 "required": ["file_path", "content"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "Bash",
+            "description": "Execute a shell command",
+            "parameters": {
+                "type": "object",
+                "required": ["command"],
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "The command to execute",
+                    }
+                }
+            }
+        }
     }
 ]
 
@@ -75,21 +94,18 @@ def main():
         for tool in tool_calls:
             arg = json.loads(tool.function.arguments)
             if tool.function.name == "Read":
-                content = call_read_func(arg)
-                
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool.id,
-                    "content": content
-                })
+                content = call_read_func(arg, tool.id)
+                messages.append(content)
+            
+
             if tool.function.name == "Write":
-                content = call_write_func(arg)
-              
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool.id,
-                    "content": content
-                })
+                content = call_write_func(arg, tool.id)
+                messages.append(content)
+
+            if tool.function_name == "Bash":
+                content = call_bash_func(arg, tool.id)
+                messages.append(content)
+
 
         chat = make_calls(client, messages)
 
@@ -101,18 +117,33 @@ def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!", file=sys.stderr)
 
-def call_read_func(arg):
+def call_read_func(arg, id):
     with open(arg["file_path"], 'r') as f:
         content = f.read()
-    return content
+    return {
+        "role": "tool",
+        "tool_call_id": id,
+        "content": content
+    }
+
+def call_bash_func(arg, id):
+    content = sh.sh("-c", arg["command"], _out=sys.stdout, _err=sys.stderr)
+    return {
+        "role": "tool",
+        "tool_call_id": id,
+        "content": content
+    }
 
 
-def call_write_func(arg):
+def call_write_func(arg, id):
     with open(arg["file_path"], 'w') as f:
         f.write(arg["content"])
 
-    return f"Content written to {arg['file_path']}"
-
+    return {
+        "role": "tool",
+        "tool_call_id": id,
+        "content": f"Content written to {arg['file_path']}"
+    }
 
 def make_calls(client: OpenAI, messages: list):
 
