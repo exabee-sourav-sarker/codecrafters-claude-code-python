@@ -1,6 +1,6 @@
 import argparse
 import os
-import subprocess
+import sh
 import sys
 import sys
 import json
@@ -88,15 +88,13 @@ def main():
         }
     ]
 
-
     chat = make_calls(client, messages)
-    msg = chat.choices[0].message
 
-    while tool_calls := msg.tool_calls:
-        messages.append(msg)
-
+    while tool_calls := chat.choices[0].message.tool_calls:
+        messages.append(chat.choices[0].message)
         for tool in tool_calls:
             arg = json.loads(tool.function.arguments)
+
             if tool.function.name == "Read":
                 content = call_read_func(arg, tool.id)
                 messages.append(content)
@@ -109,8 +107,11 @@ def main():
             if tool.function.name == "Bash":
                 content = call_bash_func(arg, tool.id)
                 messages.append(content)
-        
 
+
+        chat = make_calls(client, messages)
+
+    print(chat.choices[0].message.content)
 
     if not chat.choices or len(chat.choices) == 0:
         raise RuntimeError("no choices in response")
@@ -129,7 +130,6 @@ def call_read_func(arg, id):
 
 def call_bash_func(arg, id):
     content = subprocess.run(arg["command"].split(), capture_output=True, text=True)
-
     return {
         "role": "tool",
         "tool_call_id": id,
