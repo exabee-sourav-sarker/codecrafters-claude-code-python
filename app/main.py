@@ -10,23 +10,46 @@ BASE_URL = os.getenv("OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v
 MODEL = "anthropic/claude-haiku-4.5"
 
 
-TOOLS = {
-    "type": "function",
-    "function": {
-        "name": "Read",
-        "description": "Read the content of a file",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": "The file path"
-                }
-            },
-            "required": ["file_path"]
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "Read",
+            "description": "Read the content of a file",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The file path"
+                    }
+                },
+                "required": ["file_path"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "Write",
+            "description": "Write content to a file",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The file path"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The content to write to the file"
+                    }
+                },
+                "required": ["file_path", "content"]
+            }
         }
     }
-}
+]
 
 
 def main():
@@ -50,16 +73,24 @@ def main():
     while tool_calls := chat.choices[0].message.tool_calls:
         messages.append(chat.choices[0].message)
         for tool in tool_calls:
+            arg = json.loads(tool.function.arguments)
             if tool.function.name == "Read":
-                arg = json.loads(tool.function.arguments)
-                with open(arg["file_path"], 'r') as f:
-                    content = f.read()
-
+                content = call_read_func(arg)
+                
                 messages.append({
                     "role": "tool",
                     "tool_call_id": tool.id,
                     "content": content
                 })
+            if tool.function.name == "Write":
+                content = call_write_func(arg)
+              
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool.id,
+                    "content": content
+                })
+
         chat = make_calls(client, messages)
 
     print(chat.choices[0].message.content)
@@ -70,12 +101,25 @@ def main():
     # You can use print statements as follows for debugging, they'll be visible when running tests.
     print("Logs from your program will appear here!", file=sys.stderr)
 
+def call_read_func(arg):
+    with open(arg["file_path"], 'r') as f:
+        content = f.read()
+    return content
+
+
+def call_write_func(arg):
+    with open(arg["file_path"], 'w') as f:
+        f.write(arg["content"])
+
+    return f"Content written to {arg['file_path']}"
+
+
 def make_calls(client: OpenAI, messages: list):
 
     return client.chat.completions.create(
         model=MODEL,
         messages=messages,
-        tools=[TOOLS]
+        tools=TOOLS
     )
 
 
