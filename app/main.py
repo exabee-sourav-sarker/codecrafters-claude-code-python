@@ -102,7 +102,7 @@ def main():
                 content = call_write_func(arg, tool.id)
                 messages.append(content)
 
-            if tool.function_name == "Bash":
+            if tool.function.name == "Bash":
                 content = call_bash_func(arg, tool.id)
                 messages.append(content)
 
