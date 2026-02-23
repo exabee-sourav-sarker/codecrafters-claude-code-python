@@ -88,16 +88,14 @@ def main():
         }
     ]
 
-  
-    while True:
-        chat = make_calls(client, messages)
-        msg = chat.choices[0].message
 
+    chat = make_calls(client, messages)
+    msg = chat.choices[0].message
+
+    while tool_calls := msg.tool_calls:
         messages.append(msg)
-        if not msg.tool_calls:
-            break
 
-        for tool in msg.tool_calls:
+        for tool in tool_calls:
             arg = json.loads(tool.function.arguments)
             if tool.function.name == "Read":
                 content = call_read_func(arg, tool.id)
