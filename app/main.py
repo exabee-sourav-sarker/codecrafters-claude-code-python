@@ -91,8 +91,14 @@ def main():
   
     while True:
         chat = make_calls(client, messages)
-        messages.append(chat.choices[0].message)
-        for tool in chat.choices[0].message.tool_calls:
+        msg = chat.choices[0].message
+        print(msg.content)
+
+        messages.append(msg)
+        if not msg.tool_calls:
+            break
+
+        for tool in msg.tool_calls:
             arg = json.loads(tool.function.arguments)
             if tool.function.name == "Read":
                 content = call_read_func(arg, tool.id)
@@ -106,7 +112,7 @@ def main():
             if tool.function.name == "Bash":
                 content = call_bash_func(arg, tool.id)
                 messages.append(content)
-        print(chat.choices[0].message.content)
+        
 
 
     if not chat.choices or len(chat.choices) == 0:
