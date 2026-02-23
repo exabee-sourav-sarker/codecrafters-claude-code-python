@@ -1,6 +1,6 @@
 import argparse
 import os
-import sh
+import subprocess
 import sys
 import sys
 import json
@@ -131,12 +131,13 @@ def call_read_func(arg, id):
     }
 
 def call_bash_func(arg, id):
-    content = sh.sh("-c", arg["command"], cwd='.', _out=sys.stdout, _err=sys.stderr)
+    content = subprocess.run(arg["command"], capture_output=True, text=True)
+
     return {
         "role": "tool",
         "tool_call_id": id,
         "name": "Bash",
-        "content": content
+        "content": f"{content.stdout} {content.stderr}"
     }
 
 
