@@ -1,6 +1,6 @@
 import argparse
 import os
-import sh
+import subprocess
 import sys
 import sys
 import json
