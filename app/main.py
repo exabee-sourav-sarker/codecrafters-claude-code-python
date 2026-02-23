@@ -89,7 +89,7 @@ def main():
     ]
 
     chat = make_calls(client, messages)
-    while tool_calls := chat.choices[0].message.tool_calls:
+    while True:
         messages.append(chat.choices[0].message)
         for tool in tool_calls:
             arg = json.loads(tool.function.arguments)
